@@ -28,6 +28,9 @@ O alfa e **defensivo** ("crisis alpha"): captura ~78% das altas e so ~60% das qu
 
 ![Analise de alfa](alfa.png)
 
+**Controle por fatores (FF + trend, fatores NEFIN-USP):** o alfa especifico (~+10%/ano) **permanece** apos controlar por mercado, tamanho, valor, momentum e trend — esses fatores explicam apenas **~20%** do retorno. Ou seja, o resultado vem das **decisoes de alocacao da estrategia** (qual ativo, quando, e com que tamanho), e nao de exposicao passiva a fatores conhecidos.
+
+
 
 ## Como rodar
 ```bash
