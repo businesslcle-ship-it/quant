@@ -1,80 +1,52 @@
 """
-Rotacao Momentum + Volatility Targeting (versao legivel, com grafico)
-O caixa nao investido rende 100% do CDI do ano. Long-only, sem alavancagem.
+Rotacao v2 + grafico (3 paineis): patrimonio (log) / drawdown / alocacao.
+Mesma logica do rotacao.py; salva rotacao.png.
 """
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# ============================ PARAMETROS ============================
 CUSTO_POR_ORDEM = 0.0005
-VOL_ALVO        = 0.20
-JANELA_VOL      = 20
-LOOKBACKS       = [126, 189, 252, 315]
-DIAS_NO_ANO     = 252
-ATIVOS          = ["PRIO3", "ITUB3", "ABEV3"]
-CORES           = {"PRIO3": "tab:orange", "ITUB3": "tab:blue", "ABEV3": "tab:green"}
+VOL_ALVO, JANELA_VOL, DIAS_NO_ANO = 0.20, 20, 252
+LOOKBACKS = [126, 189, 252, 315]
+ATIVOS = ["PRIO3", "ITUB3", "ABEV3"]
+CORES  = {"PRIO3": "#eb6834", "ITUB3": "#2a78d6", "ABEV3": "#1baf7a"}
 CDI_POR_ANO = {2008:0.1238, 2009:0.0988, 2010:0.0975, 2011:0.1160, 2012:0.0841,
                2013:0.0806, 2014:0.1081, 2015:0.1324, 2016:0.1400, 2017:0.0993,
                2018:0.0642, 2019:0.0596, 2020:0.0276, 2021:0.0442, 2022:0.1239,
                2023:0.1304, 2024:0.1088, 2025:0.1350, 2026:0.1500}
 
-# ============================ 1) DADOS ============================
-precos = pd.concat(
-    {a: pd.read_csv(f"dados/{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
-     for a in ATIVOS}, axis=1, sort=True).loc["2008":]
-retorno_diario = precos.pct_change()
-cdi_anual  = pd.Series(precos.index.year, index=precos.index).map(CDI_POR_ANO)
-cdi_diario = (1 + cdi_anual) ** (1 / DIAS_NO_ANO) - 1
+precos = pd.concat({a: pd.read_csv(f"dados/{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+                    for a in ATIVOS}, axis=1, sort=True).loc["2008":]
+ret   = precos.pct_change()
+cdi_d = (1 + pd.Series(precos.index.year, index=precos.index).map(CDI_POR_ANO)) ** (1/DIAS_NO_ANO) - 1
 
-# ============================ 2) ALOCACAO PARA UMA JANELA ============================
-def alocacao_para_lookback(L):
-    momentum   = precos.pct_change(L)
-    eh_lider   = momentum.rank(axis=1).eq(momentum.rank(axis=1).max(axis=1), axis=0)
-    peso_lider = eh_lider.astype(float)
-    peso_lider = peso_lider.div(peso_lider.sum(axis=1), axis=0)
-    vol_lider  = (peso_lider * retorno_diario.rolling(JANELA_VOL).std() * np.sqrt(DIAS_NO_ANO)).sum(axis=1)
-    fator_vol  = (VOL_ALVO / vol_lider).clip(0, 1)
-    return peso_lider.mul(fator_vol, axis=0).fillna(0)
+def lider_da_janela(L):
+    b = precos.pct_change(L).rank(axis=1)
+    b = b.eq(b.max(axis=1), axis=0).astype(float)
+    return b.div(b.sum(axis=1), axis=0)
 
-# ============================ 3) ALOCACAO FINAL ============================
-peso      = sum(alocacao_para_lookback(L) for L in LOOKBACKS) / len(LOOKBACKS)
-exposicao = peso.sum(axis=1)
-caixa     = 1 - exposicao
+direcao = sum(lider_da_janela(L) for L in LOOKBACKS) / len(LOOKBACKS)
+r_dir   = (direcao.shift(1) * ret).sum(axis=1)
+fator   = (VOL_ALVO / (r_dir.rolling(JANELA_VOL).std() * np.sqrt(DIAS_NO_ANO))).clip(0, 1)
+peso    = direcao.mul(fator, axis=0).fillna(0).resample("W-FRI").last().reindex(precos.index, method="ffill")
+caixa   = 1 - peso.sum(axis=1)
 
-# ============================ 4) RETORNO ============================
-ret_invest = (peso.shift(1) * retorno_diario).sum(axis=1)
-ret_caixa  = caixa.shift(1) * cdi_diario
-custo      = peso.diff().abs().sum(axis=1) * CUSTO_POR_ORDEM
-retorno_estrategia = (ret_invest + ret_caixa - custo).dropna()
+ret_estrategia = ((peso.shift(1) * ret).sum(axis=1) + caixa.shift(1) * cdi_d
+                  - peso.diff().abs().sum(axis=1) * CUSTO_POR_ORDEM).dropna()
+patrimonio = (1 + ret_estrategia).cumprod()
+buy_hold   = (1 + ret.mean(axis=1)).cumprod().reindex(patrimonio.index)
+drawdown   = (patrimonio / patrimonio.cummax() - 1) * 100
+sharpe     = ret_estrategia.mean() / ret_estrategia.std() * np.sqrt(DIAS_NO_ANO)
+print(f"Sharpe (vs zero)={sharpe:.2f}  MaxDD={drawdown.min():.0f}%  ret={patrimonio.iloc[-1]-1:.0%}")
 
-# ============================ 5) RESULTADOS ============================
-excesso      = retorno_estrategia - cdi_diario.reindex(retorno_estrategia.index)
-patrimonio   = (1 + retorno_estrategia).cumprod()
-buy_hold     = (1 + retorno_diario.mean(axis=1)).cumprod()
-drawdown     = (patrimonio / patrimonio.cummax() - 1) * 100
-sharpe       = retorno_estrategia.mean() / retorno_estrategia.std() * np.sqrt(DIAS_NO_ANO)      # vs zero (mesma regua do B&H)
-sortino      = retorno_estrategia.mean() / retorno_estrategia[retorno_estrategia < 0].std() * np.sqrt(DIAS_NO_ANO)
-sharpe_cdi   = excesso.mean() / retorno_estrategia.std() * np.sqrt(DIAS_NO_ANO)                 # referencia: liquido do CDI
-print(f"Sharpe (vs zero)={sharpe:.2f} (liq. CDI {sharpe_cdi:.2f})  Sortino={sortino:.2f}  MaxDD={drawdown.min():.0f}%  ret={patrimonio.iloc[-1]-1:.0%}")
-
-# ============================ 6) GRAFICO (3 paineis) ============================
-fig, (ax_patr, ax_dd, ax_aloc) = plt.subplots(3, 1, figsize=(13, 10), sharex=True, height_ratios=[2, 1, 1])
-
-patrimonio.plot(ax=ax_patr, color="green", label="Rotacao (com CDI no caixa)")
-buy_hold.plot(ax=ax_patr, color="gray", lw=0.9, label="Buy & Hold")
-ax_patr.set_yscale("log"); ax_patr.set_title("Patrimonio acumulado (escala log)")
-ax_patr.legend(loc="upper left"); ax_patr.grid(alpha=0.3)
-
-ax_dd.fill_between(drawdown.index, drawdown.values, 0, color="red", alpha=0.35, label="Estrategia")
-for ativo in ATIVOS:
-    eq = (1 + retorno_diario[ativo]).cumprod()
-    ax_dd.plot(eq.index, (eq / eq.cummax() - 1) * 100, color=CORES[ativo], lw=0.7, alpha=0.8, label=ativo)
-ax_dd.set_title("Drawdown (%): estrategia vs cada ativo")
-ax_dd.legend(loc="lower left", ncol=4, fontsize=8); ax_dd.grid(alpha=0.3)
-
-peso.plot.area(ax=ax_aloc, color=[CORES[a] for a in ATIVOS], linewidth=0, alpha=0.8)
-ax_aloc.set_title("Alocacao (qual ativo e quanto; o vazio ate 1 e o caixa em CDI)")
-ax_aloc.legend(loc="upper left"); ax_aloc.set_ylim(0, 1)
-
-fig.tight_layout(); fig.savefig("rotacao.png", dpi=130); plt.show()
+fig, (a1, a2, a3) = plt.subplots(3, 1, figsize=(13, 10), sharex=True, height_ratios=[2, 1, 1], facecolor="#fcfcfb")
+patrimonio.plot(ax=a1, color="#2a78d6", lw=2, label="Rotacao v2 (com CDI no caixa)")
+buy_hold.plot(ax=a1, color="#8a8a85", lw=1, ls="--", label="Buy & Hold 1/3")
+a1.set_yscale("log"); a1.set_title("Patrimonio acumulado (escala log)"); a1.legend(loc="upper left"); a1.grid(alpha=0.25)
+a2.fill_between(drawdown.index, drawdown.values, 0, color="#e34948", alpha=0.35)
+a2.set_title("Drawdown (%)"); a2.grid(alpha=0.25)
+peso.plot.area(ax=a3, color=[CORES[a] for a in ATIVOS], linewidth=0, alpha=0.85)
+a3.set_title("Alocacao (o vazio ate 1 e o caixa em CDI)"); a3.legend(loc="upper left"); a3.set_ylim(0, 1)
+fig.tight_layout(); fig.savefig("rotacao.png", dpi=130, facecolor="#fcfcfb")
+print("Grafico salvo: rotacao.png")
