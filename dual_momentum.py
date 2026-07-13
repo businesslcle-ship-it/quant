@@ -36,17 +36,18 @@ for t in peso.index[12:]:
         peso.loc[t, lider.loc[t]] = 1.0
 caixa = 1 - peso.sum(axis=1)
 
-# %% 3) Retorno (sinal de t paga em t+1) e resultados
+# %% 3) Retorno (sinal de t paga em t+1) e resultados NOMEADOS
 ret_estrategia = ((peso.shift(1) * retorno).sum(axis=1) + caixa.shift(1) * cdi_mensal
                   - peso.diff().abs().sum(axis=1) * CUSTO).iloc[13:]
-patrimonio = (1 + ret_estrategia).cumprod()
-drawdown   = patrimonio / patrimonio.cummax() - 1
+patrimonio    = (1 + ret_estrategia).cumprod()
+sharpe        = ret_estrategia.mean() / ret_estrategia.std() * np.sqrt(12)
+drawdown_max  = (patrimonio / patrimonio.cummax() - 1).min()
+retorno_total = patrimonio.iloc[-1] - 1
+meses_caixa   = (caixa.iloc[13:] == 1).mean()
+trocas        = int((peso.diff().abs().sum(axis=1).iloc[13:] > 0).sum())
+posicao_hoje  = lider.iloc[-1] if investe.iloc[-1] else 'CAIXA'
 
 print('=== Dual Momentum fiel (12m por calendario, mensal, 20 bps) ===')
-print(f'Periodo:        {ret_estrategia.index[0]:%Y-%m} a {ret_estrategia.index[-1]:%Y-%m}')
-print(f'Sharpe:         {ret_estrategia.mean()/ret_estrategia.std()*np.sqrt(12):.2f}')
-print(f'Max Drawdown:   {drawdown.min():.0%}  (regua mensal; na diaria e mais fundo)')
-print(f'Retorno total:  {patrimonio.iloc[-1]-1:.0%}')
-print(f'Tempo em caixa: {(caixa.iloc[13:] == 1).mean():.0%} dos meses | '
-      f'trocas: {int((peso.diff().abs().sum(axis=1).iloc[13:] > 0).sum())} em {len(ret_estrategia)} meses')
-print(f'Posicao hoje:   {lider.iloc[-1] if investe.iloc[-1] else "CAIXA"}')
+print(f'Periodo: {ret_estrategia.index[0]:%Y-%m} a {ret_estrategia.index[-1]:%Y-%m}')
+print(f'Sharpe {sharpe:.2f} | MaxDD {drawdown_max:.0%} (regua mensal; na diaria e mais fundo) | retorno {retorno_total:.0%}')
+print(f'Caixa em {meses_caixa:.0%} dos meses | {trocas} trocas em {len(ret_estrategia)} meses | posicao hoje: {posicao_hoje}')
