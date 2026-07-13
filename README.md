@@ -43,6 +43,13 @@ O `dual_momentum.py` roda o nucleo do livro INTACTO — momentum de **12 meses p
 
 **Leitura honesta:** descontada a selecao de variantes do laboratorio (~0,12 de barreira), o Sharpe EMPATA com o baseline — a escolha pela versao 60min se sustenta em fidelidade + uso integral do timestamp real + custo mecanicamente baixo, nao num Sharpe "maior".
 
+## Pseudocodigos
+
+Narrativa linha a linha (em portugues) dos scripts apresentados:
+
+- [Rotacao v2](docs/pseudocodigo/rotacao_v2.md) · [Dual Momentum 60min](docs/pseudocodigo/dual_momentum_60min.md)
+- Indice: [docs/pseudocodigo/](docs/pseudocodigo/)
+
 ## Como rodar
 
 ```bash
@@ -72,7 +79,8 @@ Requer a pasta `dados/` (CSVs dos 3 ativos + `base_plana.csv` para o Dual Moment
 │   ├── comparativo.py / *_graf.py / sinais*.py
 │   └── _paths.py                     # dados/, figures/, out/
 ├── figures/                          # PNGs do README
-├── docs/                             # pseudocodigos (.docx)
+├── docs/
+│   └── pseudocodigo/                 # narrativa linha a linha (.md + .docx)
 ├── dados/                            # precos
 └── out/                              # CSVs gerados (gitignored)
 ```
@@ -83,7 +91,7 @@ Requer a pasta `dados/` (CSVs dos 3 ativos + `base_plana.csv` para o Dual Moment
 | `src/dual_momentum.py` | Dual Momentum 60min (apresentado) |
 | `src/dual_momentum_mensal.py` | Baseline mensal |
 | `figures/` | Graficos do README |
-| `docs/` | Pseudocodigos linha a linha |
+| `docs/pseudocodigo/` | Pseudocodigos linha a linha (md + docx) |
 | `dados/` | Precos ajustados |
 
 Stack: Python, pandas, numpy, matplotlib.
