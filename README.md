@@ -31,12 +31,12 @@ O `dual_momentum.py` roda o nucleo do livro INTACTO — momentum de **12 meses p
 
 | Versao | Sharpe | MaxDD (regua) | Retorno | Custo/ano | Trocas de lider |
 |---|---|---|---|---|---|
-| **DM 60min fiel (12m + histerese)** | **1,13** | -64% (horaria) | **+4.922%** | **3,6%** | **20 em 9 anos** |
+| **DM 60min fiel (12m + histerese)** | **1,12** | -64% (horaria) | **+4.631%** | **3,6%** | **20 em 9 anos** |
 | Baseline fiel mensal (`dual_momentum_mensal.py`) | 1,04 | -65% (mensal; -79% diaria) | +3.853% | ~0 | 18 em 9 anos |
 
 ![DM vs benchmark](dm_vs_benchmark.png)
 
-**Leitura honesta:** descontada a selecao de variantes do laboratorio (~0,12 de barreira), o Sharpe EMPATA com o baseline — a escolha pela versao 60min se sustenta em fidelidade + uso integral do timestamp real + custo mecanicamente baixo (3,6%/ano), nao num Sharpe "maior". O drawdown e o do proprio livro (-64% horaria ~ -65% mensal do baseline): velocidade de reacao vem do HORIZONTE do sinal, nao do relogio de avaliacao — encurtar o lookback baixaria o DD, mas deixaria de ser o livro. Contra o B&H 1/3 (Sharpe 1,13): o DM compra retorno por concentracao; eficiencia e papel do vol target da v2.
+**Leitura honesta:** descontada a selecao de variantes do laboratorio (~0,12 de barreira), o Sharpe EMPATA com o baseline — a escolha pela versao 60min se sustenta em fidelidade + uso integral do timestamp real + custo mecanicamente baixo (3,6%/ano), nao num Sharpe "maior". O retorno de +4.631% e fragil: a maior barra sozinha (+18,4% em nov/2020, em posicao concentrada) vale ~735 pontos percentuais do acumulado — concentracao em barras volateis, nao eficiencia. O drawdown e o do proprio livro (-64% horaria ~ -65% mensal do baseline): velocidade de reacao vem do HORIZONTE do sinal, nao do relogio de avaliacao — encurtar o lookback baixaria o DD, mas deixaria de ser o livro. Contra o B&H 1/3 (Sharpe 1,13): o DM compra retorno por concentracao; eficiencia e papel do vol target da v2.
 
 ## Como rodar
 
