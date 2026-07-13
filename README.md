@@ -1,21 +1,26 @@
 # Quant Momentum — Rotacao v2
 
-Estrategia sistematica de momentum cross-sectional com **volatility targeting** e rebalance semanal, aplicada a ITUB3, PRIO3 e ABEV3 (desde 2008). A cada dia o sistema mede o momentum dos tres ativos em quatro janelas (6, 9, 12 e 15 meses), aloca no mais forte, **dimensiona a posicao pela volatilidade do portfolio** (mira 20% ao ano) e congela os pesos por uma semana. O capital nao investido rende 100% do CDI. Long-only, sem alavancagem, liquido de custos, sem look-ahead (`shift(1)`).
+Estrategia sistematica de momentum cross-sectional com **volatility targeting** e rebalance semanal, aplicada a ITUB3, PRIO3 e ABEV3. A cada dia o sistema mede o momentum dos tres ativos em quatro janelas (6, 9, 12 e 15 meses), aloca no mais forte, **dimensiona a posicao pela volatilidade do portfolio** (mira 20% ao ano) e congela os pesos por uma semana. O capital nao investido rende 100% do CDI. Long-only, sem alavancagem, liquido de **20 bps por perna**, sem look-ahead (`shift(1)`).
 
 A logica tem tres camadas independentes: **direcao** (em quem — a media dos lideres das quatro janelas), **tamanho** (quanto — o vol target, uma vez, no nivel do portfolio) e **ritmo** (quando — rebalance semanal).
 
-## Resultados (janela dos 3 ativos, regua diaria, liquido de 20 bps)
+## Resultados — duas janelas, mesma regua (diaria, 20 bps)
+
+**Lab / `rotacao.py` (amostra desde 2008, warm-up honesto — E37):** Sharpe **1,18** | MaxDD **−28%** | retorno +6.701%.  
+(Antes do E37 o código cortava a história em 2008 e reportava 1,30/−25% com 2008 inteiro em CDI por artefato. PRIO só entra em meados de 2015; ITUB em 2009.)
+
+**Comparativo head-to-head (janela dos 3 ativos, ~2016-06+, `comparativo.py`):**
 
 | Estrategia | Sharpe | Vol | Max Drawdown | Retorno |
 |---|---|---|---|---|
-| **Rotacao v2 (freio)** | **1,56** | 22% | **-24%** | +2.403% |
+| **Rotacao v2 (freio)** | **1,56** | 22% | **-24%** | +2.401% |
 | v2 sem freio | 1,09 | 50% | -79% | +6.207% |
 | Dual Momentum (livro, baseline) | 1,03 | 50% | -79% | +4.727% |
 | Buy & Hold 1/3 | 1,17 | 27% | -52% | +1.539% |
 
 ![Comparativo](comparativo.png)
 
-**Leitura:** o vol target ("o freio") e o que separa a v2 do resto. Sem ele, a rotacao converge para o Dual Momentum classico (mesma vol de 50%, mesmo drawdown de -79%) — ou seja, o diferencial da v2 nao esta no sinal de direcao, e sim no **controle de risco**: terceiro do risco, metade do drawdown, e o melhor retorno ajustado a risco (Sharpe) do grupo. O Dual Momentum entrega mais retorno absoluto (concentra 100% no lider), mas ao custo de um drawdown de -79%.
+**Leitura:** o vol target ("o freio") e o que separa a v2 do resto. Sem ele, a rotacao converge para o Dual Momentum classico (mesma vol de 50%, mesmo drawdown de -79%) — ou seja, o diferencial da v2 nao esta no sinal de direcao, e sim no **controle de risco**: terceiro do risco, metade do drawdown, e o melhor retorno ajustado a risco (Sharpe) do grupo. O Dual Momentum entrega mais retorno absoluto (concentra 100% no lider), mas ao custo de um drawdown de -79%. **Nao confundir** o 1,56 (janela 2016+) com o 1,18 (amostra 2008+ apos E37).
 
 ![Rotacao v2](rotacao.png)
 
@@ -32,7 +37,7 @@ O `dual_momentum.py` roda o nucleo do livro INTACTO — momentum de **12 meses p
 | Versao | Sharpe | MaxDD (regua) | Retorno | Custo/ano | Trocas de lider |
 |---|---|---|---|---|---|
 | **DM 60min fiel (12m + histerese)** | **1,12** | -64% (horaria) | **+4.631%** | **3,6%** | **20 em 9 anos** |
-| Baseline fiel mensal (`dual_momentum_mensal.py`) | 1,04 | -65% (mensal; -79% diaria) | +3.853% | ~0 | 18 em 9 anos |
+| Baseline fiel mensal (`dual_momentum_mensal.py`) | 1,04 | -65% (mensal; -79% diaria) | +3.853% | baixo (18 trocas × 20 bps) | 18 em 9 anos |
 
 ![DM vs benchmark](dm_vs_benchmark.png)
 

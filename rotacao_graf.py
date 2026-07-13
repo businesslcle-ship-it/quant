@@ -1,12 +1,12 @@
 """
 Rotacao v2 + grafico (3 paineis): patrimonio (log) / drawdown / alocacao.
-Mesma logica do rotacao.py; salva rotacao.png.
+Mesma logica do rotacao.py (regua oficial 20 bps); salva rotacao.png.
 """
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-CUSTO_POR_ORDEM = 0.0005
+CUSTO_OFICIAL = 0.0020                    # 20 bps — mesma regua do rotacao.py
 VOL_ALVO, JANELA_VOL, DIAS_NO_ANO = 0.20, 20, 252
 LOOKBACKS = [126, 189, 252, 315]
 ATIVOS = ["PRIO3", "ITUB3", "ABEV3"]
@@ -16,10 +16,12 @@ CDI_POR_ANO = {2008:0.1238, 2009:0.0988, 2010:0.0975, 2011:0.1160, 2012:0.0841,
                2018:0.0642, 2019:0.0596, 2020:0.0276, 2021:0.0442, 2022:0.1239,
                2023:0.1304, 2024:0.1088, 2025:0.1350, 2026:0.1500}
 
+# Historia completa para lookback; metricas desde 2008 (E37).
 precos = pd.concat({a: pd.read_csv(f"dados/{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
-                    for a in ATIVOS}, axis=1, sort=True).loc["2008":]
+                    for a in ATIVOS}, axis=1, sort=True)
 ret   = precos.pct_change()
 cdi_d = (1 + pd.Series(precos.index.year, index=precos.index).map(CDI_POR_ANO)) ** (1/DIAS_NO_ANO) - 1
+AVALIAR_DESDE = "2008"
 
 def lider_da_janela(L):
     b = precos.pct_change(L).rank(axis=1)
@@ -33,12 +35,13 @@ peso    = direcao.mul(fator, axis=0).fillna(0).resample("W-FRI").last().reindex(
 caixa   = 1 - peso.sum(axis=1)
 
 ret_estrategia = ((peso.shift(1) * ret).sum(axis=1) + caixa.shift(1) * cdi_d
-                  - peso.diff().abs().sum(axis=1) * CUSTO_POR_ORDEM).dropna()
+                  - peso.diff().abs().sum(axis=1) * CUSTO_OFICIAL).dropna().loc[AVALIAR_DESDE:]
+peso = peso.loc[AVALIAR_DESDE:]
 patrimonio = (1 + ret_estrategia).cumprod()
 buy_hold   = (1 + ret.mean(axis=1)).cumprod().reindex(patrimonio.index)
 drawdown   = (patrimonio / patrimonio.cummax() - 1) * 100
 sharpe     = ret_estrategia.mean() / ret_estrategia.std() * np.sqrt(DIAS_NO_ANO)
-print(f"Sharpe (vs zero)={sharpe:.2f}  MaxDD={drawdown.min():.0f}%  ret={patrimonio.iloc[-1]-1:.0%}")
+print(f"Sharpe (vs zero, 20 bps)={sharpe:.2f}  MaxDD={drawdown.min():.0f}%  ret={patrimonio.iloc[-1]-1:.0%}")
 
 fig, (a1, a2, a3) = plt.subplots(3, 1, figsize=(13, 10), sharex=True, height_ratios=[2, 1, 1], facecolor="#fcfcfb")
 patrimonio.plot(ax=a1, color="#2a78d6", lw=2, label="Rotacao v2 (com CDI no caixa)")
