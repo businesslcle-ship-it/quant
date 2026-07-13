@@ -107,9 +107,9 @@ for inicio, fim in [(2017, 2019), (2020, 2022), (2023, 2026)]:
     r = retorno_estrategia.loc[str(inicio):str(fim)]
     blocos[f'{inicio}-{fim}'] = r.mean() / r.std() * np.sqrt(HORAS_POR_ANO)
 
-print('=== Dual Momentum 60min — fiel ao livro (12m por calendario) + histerese 5% ===')
+print('=== Dual Momentum — fiel ao livro (12m por calendario) nas barras 60min + histerese 5% ===')
 print(f'Periodo: {retorno_estrategia.index[0]:%Y-%m} a {retorno_estrategia.index[-1]:%Y-%m} | decisao a cada barra de 60min')
 print(f'Sharpe {sharpe:.2f} | MaxDD {max_drawdown:.0%} (regua HORARIA, a mais dura) | retorno {retorno_total:.0%}')
 print(f'Trocas: {trocas_lider} de lider + {trocas_caixa} do caixa | custo {custo_ano:.1%}/ano | posicao hoje: {posicao_hoje}')
 print('Sharpe por bloco: ' + ' | '.join(f'{nome}: {s:.2f}' for nome, s in blocos.items()))
-print('Baseline fiel mensal (dual_momentum_mensal.py): Sharpe 1.04 | MaxDD -65% mensal | +3853%')
+print('Baseline Dual Momentum mensal (dual_momentum_mensal.py): Sharpe 1.04 | MaxDD -65% mensal | +3853%')
