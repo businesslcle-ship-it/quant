@@ -25,6 +25,14 @@ As alocacoes da Rotacao v2 (pesos fracionarios + caixa) e do Dual Momentum (tudo
 
 ![Sinais comparados](sinais_comparados.png)
 
+## Dual Momentum vs benchmark
+
+O baseline do livro contra o Buy & Hold 1/3 e o CDI, na mesma grade mensal do `dual_momentum.py` — `python3 dual_momentum_graf.py` gera:
+
+![DM vs benchmark](dm_vs_benchmark.png)
+
+**Leitura honesta:** o DM ganha em retorno (+3.853% vs +966%) por concentracao composta (100% no lider), mas o B&H 1/3 tem Sharpe maior (1,13 vs 1,04) e drawdown menor (-41% vs -65%) — diversificar 3 acoes ja paga mais eficiencia que rotacionar entre elas. E exatamente a lacuna que o vol target da v2 fecha.
+
 ## Como rodar
 
 ```bash
@@ -44,6 +52,7 @@ Requer a pasta `dados/` com CSVs no formato `date,open,high,low,close,adjustedCl
 | `rotacao.py` | Estrategia v2 (nucleo legivel, comentado) |
 | `rotacao_graf.py` | v2 + grafico de 3 paineis |
 | `dual_momentum.py` | Dual Momentum fiel ao livro (baseline de comparacao) |
+| `dual_momentum_graf.py` | DM vs B&H 1/3 vs CDI (grafico, grade mensal) |
 | `comparativo.py` | Comparativo das 4 estrategias + grafico |
 | `sinais.py` | Exporta a alocacao diaria por ativo |
 | `Pseudocodigo_v2.docx` | Pseudocodigo da v2 (linha a linha) |
