@@ -19,6 +19,12 @@ A logica tem tres camadas independentes: **direcao** (em quem — a media dos li
 
 ![Rotacao v2](rotacao.png)
 
+## Sinais das duas estrategias
+
+As alocacoes da Rotacao v2 (pesos fracionarios + caixa) e do Dual Momentum (tudo-ou-nada) no mesmo eixo do tempo — `python3 sinais_comparados.py` gera o grafico e exporta os CSVs de sinais:
+
+![Sinais comparados](sinais_comparados.png)
+
 ## Como rodar
 
 ```bash
