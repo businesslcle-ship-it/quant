@@ -30,10 +30,8 @@ momentum = mensal.pct_change(12)                                   # 12 meses, p
 lider    = momentum.dropna(how='all').idxmax(axis=1).reindex(momentum.index)
 investe  = momentum.max(axis=1) > cdi_12m
 
-peso = pd.DataFrame(0.0, index=mensal.index, columns=ATIVOS)
-for t in peso.index[12:]:
-    if investe.loc[t]:
-        peso.loc[t, lider.loc[t]] = 1.0
+matriz_lider = pd.get_dummies(lider).reindex(index=mensal.index, columns=ATIVOS, fill_value=False)
+peso  = matriz_lider.mul(investe, axis=0).astype(float)            # 100% no lider, se a perna absoluta deixar
 caixa = 1 - peso.sum(axis=1)
 
 # %% 3) Retorno (sinal de t paga em t+1) e resultados NOMEADOS
@@ -47,7 +45,19 @@ meses_caixa   = (caixa.iloc[13:] == 1).mean()
 trocas        = int((peso.diff().abs().sum(axis=1).iloc[13:] > 0).sum())
 posicao_hoje  = lider.iloc[-1] if investe.iloc[-1] else 'CAIXA'
 
+# robustez e contexto: Sharpe por bloco de ~3 anos + benchmarks do mesmo periodo
+blocos = {}
+for inicio, fim in [(2017, 2019), (2020, 2022), (2023, 2026)]:
+    r = ret_estrategia.loc[str(inicio):str(fim)]
+    blocos[f'{inicio}-{fim}'] = r.mean() / r.std() * np.sqrt(12)
+bh_terco    = retorno.mean(axis=1).iloc[13:]                       # 1/3 em cada acao, rebalanceado ao mes
+sharpe_bh   = bh_terco.mean() / bh_terco.std() * np.sqrt(12)
+retorno_bh  = (1 + bh_terco).prod() - 1
+retorno_cdi = (1 + cdi_mensal.iloc[13:]).prod() - 1
+
 print('=== Dual Momentum fiel (12m por calendario, mensal, 20 bps) ===')
 print(f'Periodo: {ret_estrategia.index[0]:%Y-%m} a {ret_estrategia.index[-1]:%Y-%m}')
 print(f'Sharpe {sharpe:.2f} | MaxDD {drawdown_max:.0%} (regua mensal; na diaria e mais fundo) | retorno {retorno_total:.0%}')
 print(f'Caixa em {meses_caixa:.0%} dos meses | {trocas} trocas em {len(ret_estrategia)} meses | posicao hoje: {posicao_hoje}')
+print('Sharpe por bloco: ' + ' | '.join(f'{nome}: {s:.2f}' for nome, s in blocos.items()))
+print(f'Benchmarks do periodo: B&H 1/3 Sharpe {sharpe_bh:.2f}, retorno {retorno_bh:.0%} | CDI {retorno_cdi:.0%}')
