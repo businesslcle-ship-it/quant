@@ -21,7 +21,7 @@ A logica tem tres camadas independentes: **direcao** (em quem — a media dos li
 
 ![Comparativo](figures/comparativo.png)
 
-**estratégia-própria** (nome oficial): breadth Path B — +100% Top20 / −30% Bottom10 / +30% CDI; sinal = **média dos percentis** de momentum em **3/6/9/12 meses** (lab E48; substitui o single-365d E45). Série em `dados/estrategia_propria_diario.csv`. **Universo distinto** dos 3 ativos: o gráfico alinha o calendário; **não** é apples-to-apples de painel. Pseudocódigo: [docs/pseudocodigo/estrategia_propria.md](docs/pseudocodigo/estrategia_propria.md).
+**estratégia-própria** (série experimental Path B): +100% Top20 / −30% Bottom10 / +30% CDI; curva do lab E48 (combo 3/6/9/12m) em `dados/estrategia_propria_diario.csv`. **Universo distinto** dos 3 ativos. **Nota de pesquisa (lab, 2026-07-16):** o norte do Desafio com o mentor é **sinal/alfa explorável por ML** (muitas decisões, base só minimamente boa) — não otimização de portfólio/Sharpe. Esta curva é veículo de amostra, não “estratégia final vencedora”. Pseudocódigo: [docs/pseudocodigo/estrategia_propria.md](docs/pseudocodigo/estrategia_propria.md).
 
 **Leitura (linha 3 ativos):** o vol target ("o freio") e o que separa a v2 do resto. Sem ele, a rotacao converge para o Dual Momentum classico (mesma vol de 50%, mesmo drawdown de -79%) — ou seja, o diferencial da v2 nao esta no sinal de direcao, e sim no **controle de risco**. **Nao confundir** o 1,56 (janela 2016+) com o 1,18 (amostra 2008+ apos E37).
 
