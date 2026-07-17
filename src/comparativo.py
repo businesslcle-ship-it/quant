@@ -63,9 +63,8 @@ assert ep_path.exists(), f"Falta {ep_path} (export lab E54 → base amostra)"
 ep = pd.read_csv(ep_path, parse_dates=["dia"]).set_index("dia")["retorno_liquido"]
 series["estrategia-propria"] = ep.dropna().loc[INICIO:]
 print(
-    "AVISO: estrategia-propria = Path B 145 lab E54 (mom 1m, semanal). "
-    "Base de AMOSTRA para ML — nao ranking de Sharpe. "
-    "Universo DISTINTO dos 3 ativos. Meta-treino = com mentor, fora do repo."
+    "AVISO: estrategia-propria = Path B (145 acoes), mom 1m, rebalance semanal. "
+    "Universo distinto dos 3 ativos; o grafico so alinha o calendario."
 )
 
 print(f"{INICIO}→{precos.index[-1]:%Y-%m} | ativas @20bps; B&H sem corretagem")
@@ -85,7 +84,7 @@ fig, (ax_eq, ax_dd) = plt.subplots(2, 1, figsize=(13, 9), sharex=True,
                                    height_ratios=[2, 1], facecolor="#fcfcfb")
 fig.suptitle(
     "Comparativo — mesma janela calendário @20 bps\n"
-    "(estrategia-propria = E54 Path B amostra ML; demais = 3 ativos)",
+    "(estrategia-propria = Path B 145; demais = 3 ativos)",
     fontsize=12, weight="bold",
 )
 for nome, eq in curvas.items():

@@ -1,16 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-estratégia-própria — base de amostra Path B (lab E54) no repo público.
+Estratégia-própria — imprime métricas da série publicada e do painel de decisões.
 
-NÃO é o motor de ranking (fica no lab). Aqui só:
-  - carrega a série exportada
-  - imprime a tabela de filme (E49–E54)
-  - imprime o resumo do schema E55
-  - deixa explícito: meta-treino = com o mentor
-
-Rodar na raiz do repo:
-  python3 src/estrategia_propria_amostra.py
-  # ou: python3 estrategia_propria_amostra.py  (atalho na raiz)
+  python3 estrategia_propria_amostra.py
 """
 from pathlib import Path
 import sys
@@ -23,48 +15,39 @@ if str(_SRC) not in sys.path:
 from _paths import DADOS, ROOT  # noqa: E402
 
 print("=" * 72)
-print("estratégia-própria = BASE DE AMOSTRA (lab E54: mom 1m, semanal)")
-print("Norte: sinal → ML | Meta-treino: COM O GUILHERME (não neste repo)")
+print("Estratégia-própria · Path B · momentum 1m · rebalance semanal")
 print("=" * 72)
 
 serie = DADOS / "estrategia_propria_diario.csv"
 horiz = DADOS / "comparativo_horizontes_filme.csv"
 schema = DADOS / "e55_schema_resumo.csv"
 part = DADOS / "e55_schema_particoes.csv"
-
 for p in (serie, horiz, schema, part):
-    assert p.exists(), f"Falta {p} — repo desatualizado ou clone incompleto"
+    assert p.exists(), f"Falta {p}"
 
 ep = pd.read_csv(serie, parse_dates=["dia"]).set_index("dia")
 ret = ep["retorno_liquido"]
 eq = (1 + ret).cumprod()
 sharpe = ret.mean() / ret.std(ddof=1) * (252 ** 0.5)
 dd = (eq / eq.cummax() - 1).min()
-print(f"\nSérie {serie.name}: {ret.index.min().date()} → {ret.index.max().date()}")
-print(f"  dias={len(ret)} | ret_acum={eq.iloc[-1]-1:+.2%} | "
-      f"Sharpe*={sharpe:.2f} | MaxDD*={dd:.2%}")
-print("  (*secundário — norte é filme/amostra, não placar)")
+print(f"\nSérie: {ret.index.min().date()} → {ret.index.max().date()}")
+print(f"  dias={len(ret)} | retorno={eq.iloc[-1]-1:+.2%} | "
+      f"Sharpe={sharpe:.2f} | MaxDD={dd:.2%}")
 
-print("\n--- Comparativo de filme (Path B, stdout lab) ---")
+print("\nSensibilidade horizonte × frequência (ordens e retorno):")
 h = pd.read_csv(horiz)
 cols = ["experimento", "horizonte", "frequencia", "n_ordens", "n_rebalances",
-        "custo_20bps", "retorno_liquido", "sharpe_zero_secundario", "papel"]
+        "retorno_liquido", "sharpe_zero_secundario"]
 print(h[cols].to_string(index=False))
 
-print("\n--- Schema E55 (labels; SEM treino) ---")
+print("\nPainel de decisões:")
 s = pd.read_csv(schema).iloc[0]
-print(f"  N labels={int(s['n_labels'])} | taxa y=1={float(s['taxa_y1']):.1%}")
+print(f"  exemplos={int(s['n_labels'])} | positivos={float(s['taxa_y1']):.1%}")
 print(f"  train/test/holdout = "
       f"{int(s['n_train_ate_2019'])}/"
       f"{int(s['n_test_2020_2022'])}/"
       f"{int(s['n_holdout_desde_2023'])}")
-print(f"  veredito={s['veredito_lab']}")
-print(f"  meta_treino={s['meta_treino']}")
-print("\nPartições × lado:")
 print(pd.read_csv(part).to_string(index=False))
 
-print("\n--- Onde ler no GitHub ---")
-print(f"  {ROOT / 'ESTRATEGIA_PROPRIA.md'}")
-print(f"  {ROOT / 'docs' / 'LINHA_RACIOCINIO.md'}")
-print(f"  {ROOT / 'docs' / 'pseudocodigo' / 'base_amostra_e54.md'}")
+print(f"\nDocs: {ROOT / 'ESTRATEGIA_PROPRIA.md'}")
 print("=" * 72)

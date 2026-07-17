@@ -1,92 +1,103 @@
 # Quant Research
 
-> **Path B / estratégia-própria atualizada:** abra [`ESTRATEGIA_PROPRIA.md`](ESTRATEGIA_PROPRIA.md)  
-> (se você só olhar `src/`, verá o código dos **3 ativos** — a evidência Path B está em `docs/` + `dados/` + `src/estrategia_propria_amostra.py`).
+Pesquisa quantitativa em ações brasileiras: duas linhas apresentadas neste repositório.
 
-Rotacao Momentum v2 — estrategia sistematica de momentum cross-sectional com **volatility targeting** e rebalance semanal, aplicada a ITUB3, PRIO3 e ABEV3. A cada dia o sistema mede o momentum dos tres ativos em quatro janelas (6, 9, 12 e 15 meses), aloca no mais forte, **dimensiona a posicao pela volatilidade do portfolio** (mira 20% ao ano) e congela os pesos por uma semana. O capital nao investido rende 100% do CDI. Long-only, sem alavancagem, liquido de **20 bps por ordem**, sem look-ahead (`shift(1)`).
+1. **Rotação Momentum v2** e **Dual Momentum** — universo de três ativos (ITUB3, PRIO3, ABEV3).  
+2. **Estratégia-própria** — momentum cross-sectional em universo amplo (Path B, 145 ações), long/short com parcela em CDI.
 
-A logica tem tres camadas independentes: **direcao** (em quem — a media dos lideres das quatro janelas), **tamanho** (quanto — o vol target, uma vez, no nivel do portfolio) e **ritmo** (quando — rebalance semanal).
-
----
-
-## Norte de pesquisa (Path B / mentor) — leia isto antes do placar
-
-Com o mentor (**Guilherme**), o objetivo da linha Path B **nao** e o Sharpe maximo de carteira.
-
-Objetivo: **sinal/alfa que ML possa explorar** — muitas movimentacoes, base so **minimamente boa**, interesse do sinal.  
-**Metalabeling** sera feito **junto com o Guilherme** — este repo **nao** treina o meta.
-
-Linha completa + motivos: **[docs/LINHA_RACIOCINIO.md](docs/LINHA_RACIOCINIO.md)**  
-Auditoria do que o repo prova: **[docs/AUDITORIA_EVIDENCIA.md](docs/AUDITORIA_EVIDENCIA.md)**
-
-**Base publica atual (`estratégia-própria` no grafico):** lab **E54** — momentum **1 mes**, rebalance **semanal**, Path B 145, +100% Top20 / −30% Bottom10 / +30% CDI, 20 bps.  
-Serie: `dados/estrategia_propria_diario.csv`. Pseudocodigo: [docs/pseudocodigo/base_amostra_e54.md](docs/pseudocodigo/base_amostra_e54.md).
-
-**Por que 1m semanal (resumo):** na paisagem E49–E53 o **1m** gera mais filme que 2m/3m; a frequencia semanal (E54) multiplica decisoes vs mensal (E53). Combo E48 foi desvio de portfolio — nao e a base.
-
-**Schema de labels (E55, sem treino):** unidade = ativo × sinal × lado; y = perna > CDI ate o proximo sinal. N=**15 522**, y≈50%. Resumos: `dados/e55_schema_*.csv`. Docs: [schema_labels_e55.md](docs/pseudocodigo/schema_labels_e55.md).
-
-### Comparativo de filme (Path B) — ordens importam mais que Sharpe*
-
-| Exp | Horizonte | Freq | Ordens | Rebalances | Custo | Ret liq* | Sharpe* |
-|---|---|---|---:|---:|---:|---:|---:|
-| E53 | 1m | mensal | 5 381 | 120 | 50% | +458% | 0,96 |
-| **E54** | **1m** | **semanal** | **12 480** | **519** | **107%** | **+152%** | **0,56** |
-| E52 | 2m | mensal | 4 017 | 119 | 35% | +755% | 1,17 |
-| E49 | 3m | mensal | 3 354 | 118 | 29% | +471% | 0,97 |
-| E50 | 6m | mensal | 2 281 | 115 | 20% | +967% | 1,28 |
-| E51 | 12m | mensal | 1 599 | 109 | 14% | +730% | 1,19 |
-
-\*Retorno/Sharpe = **secundarios** (norte = amostra). CSV: `dados/comparativo_horizontes_filme.csv`.
+Tudo líquido de **20 bps por ordem**, sem look-ahead (`shift(1)`), CDI diário do BCB no caixa.
 
 ---
 
-## Resultados — linha 3 ativos (mesma regua diaria, 20 bps)
+## Estratégia-própria (universo amplo)
 
-**Lab / `rotacao.py` (amostra desde 2008, warm-up honesto — E37):** Sharpe **1,18** | MaxDD **−28%** | retorno +6.740%.  
-(Antes do E37 o código cortava a história em 2008 e reportava 1,30/−25% com 2008 inteiro em CDI por artefato. PRIO só entra em meados de 2015; ITUB em 2009. CDI do caixa: série diária BCB.)
+Cross-section de momentum no Path B (145 ações com histórico contínuo na janela operacional). A cada **semana**, o sistema:
 
-**Comparativo (janela calendário ~2016-06+, `comparativo.py`, ativas @20 bps):**
+- mede o momentum de **1 mês** (calendário) de cada ação elegível;
+- compra equally-weighted o **Top 20**;
+- vende equally-weighted o **Bottom 10** (exposição short −30%);
+- mantém **+30% em CDI**;
+- executa no pregão seguinte ao sinal; custo **20 bps** por ordem.
 
-| Estrategia | Universo | Sharpe* | Vol | Max Drawdown | Retorno* |
+| Métrica | Valor |
+|---|---|
+| Universo | Path B · 145 ações |
+| Sinal | Momentum 1 mês |
+| Rebalance | Semanal |
+| Carteira | +100% Top20 / −30% Bottom10 / +30% CDI |
+| Ordens / rebalances | 12 480 / 519 |
+| Retorno líquido* | +152% |
+| Sharpe* | 0,56 |
+| Max drawdown* | −58% |
+
+\*Série diária exportada em `dados/estrategia_propria_diario.csv` (janela ~2016–2026). Números do comparativo alinhado no calendário abaixo.
+
+**Por que 1 mês e frequência semanal.** Testamos horizontes de 1 a 12 meses (e 2 meses) com a mesma carteira. Horizontes mais curtos geram **mais decisões** — material mais rico para validar o sinal e, depois, para técnicas de aprendizado sobre essas decisões. A versão semanal multiplica rebalances em relação à mensal no mesmo horizonte de 1 mês. Detalhe e pseudocódigo: [docs/pseudocodigo/base_amostra_e54.md](docs/pseudocodigo/base_amostra_e54.md) · visão rápida: [ESTRATEGIA_PROPRIA.md](ESTRATEGIA_PROPRIA.md).
+
+![Horizontes Path B](figures/horizontes_path_b.png)
+
+**Painel de decisões (para aprendizado supervisionado).** Cada posição do Top20/Bottom10 em cada sinal semanal vira um exemplo rotulado: a perna superou o CDI até o próximo rebalance? Sim/não. São **15 522** exemplos (~50% positivos), com partição temporal train / test / holdout. Schema: [docs/pseudocodigo/schema_labels_e55.md](docs/pseudocodigo/schema_labels_e55.md). O modelo em cima desse painel é etapa seguinte (fora deste README).
+
+---
+
+## Comparativo (mesma janela de calendário)
+
+Régua diária, ativas @20 bps. **Atenção:** a estratégia-própria usa universo Path B; as demais usam só três ações. O gráfico alinha datas, não o painel.
+
+| Estratégia | Universo | Sharpe | Vol | Max DD | Retorno |
 |---|---|---|---|---|---|
-| **Rotacao v2 (freio)** | 3 ativos | **1,56** | 22% | **-24%** | +2.411% |
-| v2 sem freio | 3 ativos | 1,09 | 50% | -79% | +6.207% |
-| Dual Momentum mensal (livro, no comparativo) | 3 ativos | 1,03 | 50% | -79% | +4.731% |
-| Buy & Hold 1/3 | 3 ativos | 1,17 | 27% | -52% | +1.539% |
-| **estratégia-própria (= E54 amostra)** | Path B 145 | **0,56** | 21% | **−58%** | **+152%** |
-
-\*Na propria, Sharpe/retorno sao **veiculo de amostra**, nao ranking de vitoria. Numeros do `comparativo.py` na janela alinhada (~2016-06+).
+| **Rotação v2 (com freio de vol)** | 3 ativos | **1,56** | 22% | **−24%** | +2.411% |
+| v2 sem freio | 3 ativos | 1,09 | 50% | −79% | +6.207% |
+| Dual Momentum mensal (livro) | 3 ativos | 1,03 | 50% | −79% | +4.731% |
+| Buy & Hold 1/3 | 3 ativos | 1,17 | 27% | −52% | +1.539% |
+| **Estratégia-própria** | Path B 145 | 0,56 | 21% | −58% | +152% |
 
 ![Comparativo](figures/comparativo.png)
 
-**Leitura (linha 3 ativos):** o vol target ("o freio") e o que separa a v2 do resto. Sem ele, a rotacao converge para o Dual Momentum classico. **Nao confundir** o 1,56 (janela 2016+) com o 1,18 (amostra 2008+ apos E37). **Nao confundir** v2 com a propria Path B (universos distintos).
+---
 
-![Rotacao v2](figures/rotacao.png)
+## Rotação Momentum v2 (3 ativos)
 
-## Sinais das duas estrategias (3 ativos)
+Momentum cross-sectional com **volatility targeting** e rebalance semanal em ITUB3, PRIO3 e ABEV3. Três camadas: **direção** (média dos líderes em 6/9/12/15 meses), **tamanho** (vol alvo 20% a.a. no portfólio) e **ritmo** (pesos congelados por uma semana). Caixa rende CDI. Long-only, sem alavancagem.
 
-As alocacoes da Rotacao v2 e do Dual Momentum baseline mensal — `python3 src/sinais_comparados.py`:
+**Amostra longa (`rotacao.py`, desde 2008, warm-up E37):** Sharpe **1,18** | MaxDD **−28%** | retorno +6.740%.
+
+O freio de volatilidade é o que separa a v2 do Dual Momentum clássico no comparativo (vol ~22% vs ~50%). Não confundir o Sharpe 1,56 (janela ~2016+) com o 1,18 da amostra 2008+.
+
+![Rotação v2](figures/rotacao.png)
+
+### Sinais: v2 × Dual Momentum mensal
 
 ![Sinais comparados](figures/sinais_comparados.png)
 
+---
+
 ## Dual Momentum (apresentado)
 
-O `dual_momentum.py` e **o** Dual Momentum deste repo: nucleo do livro INTACTO (momentum de **12 meses por calendario** + barreira do CDI dos mesmos 12 meses), avaliado a cada **barra de 60min**, com UMA concessao — **histerese de 5%** na troca de lider.
+Núcleo do livro intacto (momentum **12 meses** + barreira CDI dos mesmos 12 meses), avaliado a cada barra de **60 minutos**, com histerese de **5%** na troca de líder.
 
-| Versao | Sharpe | MaxDD (regua) | Retorno | Custo/ano | Sinais / execucao |
-|---|---|---|---|---|---|
-| **Dual Momentum** (`dual_momentum.py`, barras 60min) | **1,13** | -64% (horaria) | **+4.931%** | **3,6%** | **147 rebalances em 9 anos; 167 ordens** |
-| Dual Momentum mensal (`dual_momentum_mensal.py`, baseline) | 1,04 | -65% (mensal; -79% diaria) | +3.858% | 6,0% total (30 ordens) | 18 meses com mudanca de peso; 30 ordens |
+| Versão | Sharpe | MaxDD | Retorno | Execução |
+|---|---|---|---|---|
+| **Dual Momentum** (`dual_momentum.py`, 60min) | **1,13** | −64% (horária) | **+4.931%** | 147 rebalances · 167 ordens |
+| Dual Momentum mensal (baseline) | 1,04 | −65% mensal (−79% diária) | +3.858% | 18 meses com troca · 30 ordens |
 
 ![DM vs benchmark](figures/dm_vs_benchmark.png)
 
-## Pseudocodigos e docs
+---
 
-- [Rotacao v2](docs/pseudocodigo/rotacao_v2.md) · [Dual Momentum](docs/pseudocodigo/dual_momentum.md)
-- [Base amostra E54](docs/pseudocodigo/base_amostra_e54.md) · [Schema labels E55](docs/pseudocodigo/schema_labels_e55.md)
-- [Linha de raciocinio](docs/LINHA_RACIOCINIO.md) · [Auditoria](docs/AUDITORIA_EVIDENCIA.md)
-- Indice: [docs/pseudocodigo/](docs/pseudocodigo/)
+## Pseudocódigos
+
+Narrativa em português para apresentação oral:
+
+- [Rotação v2](docs/pseudocodigo/rotacao_v2.md)
+- [Dual Momentum](docs/pseudocodigo/dual_momentum.md)
+- [Estratégia-própria](docs/pseudocodigo/base_amostra_e54.md)
+- [Painel de decisões (labels)](docs/pseudocodigo/schema_labels_e55.md)
+- Índice: [docs/pseudocodigo/](docs/pseudocodigo/)
+
+Metodologia (escolha de horizonte/frequência): [docs/metodologia_estrategia_propria.md](docs/metodologia_estrategia_propria.md).
+
+---
 
 ## Como rodar
 
@@ -96,32 +107,22 @@ python3 rotacao.py
 python3 dual_momentum.py
 python3 dual_momentum_mensal.py
 python3 comparativo.py
-python3 estrategia_propria_amostra.py   # imprime E54 + tabela filme + schema E55
+python3 estrategia_propria_amostra.py
 python3 rotacao_graf.py
 python3 src/sinais_comparados.py
 ```
 
-Requer a pasta `dados/` (CSVs dos 3 ativos + `base_plana.csv` + serie propria + tabelas Path B).
+Requer `dados/` (preços dos 3 ativos, `base_plana.csv`, série da própria e tabelas auxiliares).
 
 ## Estrutura
 
 ```
-├── ESTRATEGIA_PROPRIA.md              # ← COMECE AQUI (Path B / E54)
 ├── README.md
-├── docs/
-│   ├── LINHA_RACIOCINIO.md
-│   ├── AUDITORIA_EVIDENCIA.md
-│   └── pseudocodigo/
-├── dados/
-│   ├── estrategia_propria_diario.csv      # E54
-│   ├── comparativo_horizontes_filme.csv
-│   ├── e55_schema_resumo.csv
-│   └── e55_schema_particoes.csv
-├── src/
-│   ├── estrategia_propria_amostra.py      # imprime evidência Path B
-│   ├── rotacao.py / dual_momentum.py …  # linha 3 ativos
-│   └── comparativo.py
-└── figures/
+├── ESTRATEGIA_PROPRIA.md
+├── src/                 # código das estratégias apresentadas
+├── dados/               # preços e séries exportadas
+├── figures/             # gráficos do README
+└── docs/pseudocodigo/   # narrativa linha a linha
 ```
 
 Stack: Python, pandas, numpy, matplotlib.
