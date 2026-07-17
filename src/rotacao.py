@@ -17,7 +17,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS
+from _paths import BRUTOS
 from _cdi import cdi_diario
 
 # ============================ PARAMETROS ============================
@@ -29,10 +29,10 @@ LOOKBACKS       = [126, 189, 252, 315]   # janelas de momentum (media evita depe
 DIAS_NO_ANO     = 252
 ATIVOS          = ["PRIO3", "ITUB3", "ABEV3"]
 
-# ============================ 1) DADOS ============================
+# ============================ 1) BRUTOS ============================
 # Historia completa para o lookback; metricas so a partir de 2008 (E37).
 precos = pd.concat(
-    {a: pd.read_csv(DADOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+    {a: pd.read_csv(BRUTOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
      for a in ATIVOS}, axis=1, sort=True)
 retorno_diario = precos.pct_change(fill_method=None)
 cdi_diario_s   = cdi_diario(precos.index)

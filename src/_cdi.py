@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """CDI — fonte unica para o repo.
 
-Prioridade: dados/cdi_bcb_diario.csv (BCB SGS serie 12, gerado no lab).
+Prioridade: dados/brutos/cdi_bcb_diario.csv (BCB SGS serie 12, gerado no lab).
 Fallback: mapa anual hardcoded (so se o CSV faltar).
 
 Nao misturar: taxa anual do ano incompleto (ex. 2026 YTD) como se fosse
@@ -12,7 +12,7 @@ from __future__ import annotations
 import pandas as pd
 from pathlib import Path
 
-from _paths import DADOS
+from _paths import BRUTOS
 
 # Fallback (anos fechados ~iguais ao BCB; 2025/2026 no mapa antigo estavam defasados)
 CDI_ANUAL_FALLBACK = {
@@ -25,7 +25,7 @@ CDI_ANUAL_FALLBACK = {
 
 def cdi_diario(index: pd.DatetimeIndex) -> pd.Series:
     """Fator diario do CDI alinhado ao indice (ffill)."""
-    path = DADOS / "cdi_bcb_diario.csv"
+    path = BRUTOS / "cdi_bcb_diario.csv"
     if path.exists():
         s = (pd.read_csv(path, comment="#", parse_dates=["data"])
              .set_index("data")["cdi_dia"]
@@ -42,7 +42,7 @@ def cdi_diario(index: pd.DatetimeIndex) -> pd.Series:
 
 def cdi_anual_por_ano() -> dict:
     """Mapa ano -> fator acumulado no ano (para scripts mensais/60min)."""
-    path = DADOS / "cdi_bcb_anual.csv"
+    path = BRUTOS / "cdi_bcb_anual.csv"
     if path.exists():
         an = pd.read_csv(path, comment="#")
         m = dict(zip(an["ano"].astype(int), an["cdi_acumulado_ano"].astype(float)))

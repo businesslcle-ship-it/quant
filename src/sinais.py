@@ -10,13 +10,13 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, OUT
+from _paths import BRUTOS, OUT
 
 VOL_ALVO, JANELA_VOL, N = 0.20, 20, 252
 LOOKBACKS = [126, 189, 252, 315]
 ATIVOS = ["PRIO3", "ITUB3", "ABEV3"]
 
-px  = pd.concat({a: pd.read_csv(DADOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+px  = pd.concat({a: pd.read_csv(BRUTOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
                  for a in ATIVOS}, axis=1, sort=True)  # historia completa (E37)
 ret = px.pct_change(fill_method=None)
 

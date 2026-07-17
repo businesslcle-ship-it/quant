@@ -14,7 +14,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, FIGS
+from _paths import BRUTOS, FIGS
 from _cdi import cdi_diario
 
 CUSTO_OFICIAL = 0.0020
@@ -24,7 +24,7 @@ ATIVOS = ["PRIO3", "ITUB3", "ABEV3"]
 CORES  = {"PRIO3": "#eb6834", "ITUB3": "#2a78d6", "ABEV3": "#1baf7a"}
 AVALIAR_DESDE = "2008"
 
-precos = pd.concat({a: pd.read_csv(DADOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+precos = pd.concat({a: pd.read_csv(BRUTOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
                     for a in ATIVOS}, axis=1, sort=True)
 ret   = precos.pct_change(fill_method=None)
 cdi_d = cdi_diario(precos.index)

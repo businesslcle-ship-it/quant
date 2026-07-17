@@ -1,7 +1,0 @@
-partida,lado,n
-holdout_desde_2023,long_top20,3660
-holdout_desde_2023,short_bottom10,1830
-test_2020_2022,long_top20,3139
-test_2020_2022,short_bottom10,1567
-train_ate_2019,long_top20,3552
-train_ate_2019,short_bottom10,1774

@@ -16,7 +16,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, FIGS, OUT
+from _paths import BRUTOS, FIGS, OUT
 from _cdi import cdi_anual_por_ano
 
 VOL_ALVO, JANELA_VOL, N = 0.20, 20, 252
@@ -25,7 +25,7 @@ ATIVOS = ["PRIO3", "ITUB3", "ABEV3"]
 CORES  = {"PRIO3": "#eb6834", "ITUB3": "#2a78d6", "ABEV3": "#1baf7a", "caixa": "#c9c9c2"}
 CDI_POR_ANO = cdi_anual_por_ano()
 
-precos = pd.concat({a: pd.read_csv(DADOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+precos = pd.concat({a: pd.read_csv(BRUTOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
                     for a in ATIVOS}, axis=1, sort=True)  # historia completa (E37)
 ret    = precos.pct_change(fill_method=None)
 INICIO = (precos.dropna().index[0] + pd.Timedelta(days=370)).strftime("%Y-%m")

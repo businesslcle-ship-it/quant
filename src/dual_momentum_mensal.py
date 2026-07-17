@@ -5,7 +5,7 @@ Dual Momentum (Gary Antonacci) — fiel ao livro, na base do timestamp_certo.txt
   2. ABSOLUTO : o lider so entra se superar o CDI acumulado dos mesmos 12 meses.
   3. ALOCACAO : 100% no lider, ou 100% em caixa a CDI.
 Sem look-ahead (sinal do mes t paga no mes t+1). Custos: 20 bps por perna.
-Requer dados/base_plana.csv (gerada pelo montar_base.py).
+Requer dados/brutos/base_plana.csv (gerada pelo montar_base.py).
 """
 import pandas as pd
 import numpy as np
@@ -14,7 +14,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS
+from _paths import BRUTOS
 from _cdi import cdi_anual_por_ano
 
 CUSTO  = 0.0020
@@ -22,7 +22,7 @@ ATIVOS = ['PRIO3', 'ITUB3', 'ABEV3']
 CDI_POR_ANO = cdi_anual_por_ano()
 
 # %% 1) Fechamentos diarios (a linha 'dia' da base) -> precos de fim de mes
-base = pd.read_csv(DADOS / 'base_plana.csv', parse_dates=['data'])
+base = pd.read_csv(BRUTOS / 'base_plana.csv', parse_dates=['data'])
 fech = (base[base['hora'] == 'dia'].set_index('data')[[f'{a}_fechamento' for a in ATIVOS]])
 fech.columns = ATIVOS
 mensal = fech.resample('ME').last()

@@ -17,7 +17,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, FIGS
+from _paths import BRUTOS, SAIDAS, FIGS
 from _cdi import cdi_diario, cdi_anual_por_ano
 
 VOL_ALVO, JANELA_VOL, N, CUSTO = 0.20, 20, 252, 0.0020
@@ -25,7 +25,7 @@ LOOKBACKS = [126, 189, 252, 315]
 ATIVOS    = ["PRIO3", "ITUB3", "ABEV3"]
 CDI_POR_ANO = cdi_anual_por_ano()
 
-precos = pd.concat({a: pd.read_csv(DADOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
+precos = pd.concat({a: pd.read_csv(BRUTOS / f"{a}.csv", parse_dates=["date"]).set_index("date")["adjustedClose"]
                     for a in ATIVOS}, axis=1, sort=True)
 ret   = precos.pct_change(fill_method=None)
 cdi_d = cdi_diario(precos.index)
@@ -58,8 +58,8 @@ for t in wA.index[12:]:
 series["Dual Momentum (livro)"] = perf(wA.reindex(precos.index, method="ffill").fillna(0))
 series["Buy & Hold 1/3"]        = ret.mean(axis=1).dropna().loc[INICIO:]
 
-ep_path = DADOS / "estrategia_propria_diario.csv"
-assert ep_path.exists(), f"Falta {ep_path} (export lab E54 → base amostra)"
+ep_path = SAIDAS / "estrategia_propria_diario.csv"
+assert ep_path.exists(), f"Falta {ep_path} (export lab E59 130/30 sem CDI)"
 ep = pd.read_csv(ep_path, parse_dates=["dia"]).set_index("dia")["retorno_liquido"]
 series["estrategia-propria"] = ep.dropna().loc[INICIO:]
 print(

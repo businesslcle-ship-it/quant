@@ -16,12 +16,12 @@ import pandas as pd
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, FIGS
+from _paths import SAIDAS, FIGS
 
 FIGS.mkdir(exist_ok=True)
 
-# --- 1) Sensibilidade horizonte × frequência ---
-h = pd.read_csv(DADOS / "comparativo_horizontes_filme.csv")
+# --- 1) Sensibilidade horizonte × frequência (filme = densidade de decisões) ---
+h = pd.read_csv(SAIDAS / "comparativo_horizontes_filme.csv")
 ordem = ["E51", "E50", "E49", "E52", "E53", "E54"]
 h = h.set_index("experimento").loc[ordem].reset_index()
 labels = [f"{r.horizonte}\n{r.frequencia}" for _, r in h.iterrows()]
@@ -39,18 +39,19 @@ for b, v in zip(bars, h["n_ordens"]):
             ha="center", va="bottom", fontsize=8)
 
 ax2 = axes[1]
-ax2.bar(labels, h["retorno_liquido"] * 100, color=cores, width=0.7)
-ax2.set_title("Retorno líquido acumulado", fontsize=12, weight="bold")
-ax2.set_ylabel("Retorno (%)")
+ax2.bar(labels, h["custo_20bps"] * 100, color=cores, width=0.7)
+ax2.set_title("Custo acumulado @20 bps (o preço do filme)", fontsize=12, weight="bold")
+ax2.set_ylabel("Custo (%)")
 ax2.spines[["top", "right"]].set_visible(False)
 ax2.grid(axis="y", alpha=0.25)
-fig.suptitle("Estratégia-própria (Path B) — horizonte e frequência", fontsize=13, weight="bold", y=1.02)
+fig.suptitle("Estratégia-própria (Path B) — horizonte × frequência: mais decisões, mais custo",
+             fontsize=13, weight="bold", y=1.02)
 fig.tight_layout()
 fig.savefig(FIGS / "horizontes_path_b.png", dpi=130, bbox_inches="tight", facecolor="#fcfcfb")
 print(f"fig {FIGS / 'horizontes_path_b.png'}")
 
 # --- 2) Patrimônio + drawdown da série ---
-ep = pd.read_csv(DADOS / "estrategia_propria_diario.csv", parse_dates=["dia"]).set_index("dia")
+ep = pd.read_csv(SAIDAS / "estrategia_propria_diario.csv", parse_dates=["dia"]).set_index("dia")
 ret = ep["retorno_liquido"].dropna()
 eq = (1 + ret).cumprod()
 dd = eq / eq.cummax() - 1
@@ -61,7 +62,7 @@ fig2, (ax_eq, ax_dd) = plt.subplots(
     2, 1, figsize=(12, 7), sharex=True, height_ratios=[2, 1], facecolor="#fcfcfb"
 )
 fig2.suptitle(
-    "Estratégia-própria — Path B · mom 1m · semanal @20 bps",
+    "Estratégia-própria — book E59 · 130/30 sem CDI · Path B · mom 1m · semanal @20 bps",
     fontsize=13, weight="bold",
 )
 ax_eq.plot(eq.index, eq.values, color="#c0392b", lw=2, label="estratégia-própria")

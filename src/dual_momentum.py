@@ -20,7 +20,7 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS
+from _paths import BRUTOS
 from _cdi import cdi_anual_por_ano
 
 # ============================ PARAMETROS ============================
@@ -30,9 +30,9 @@ HORAS_POR_ANO = 252 * 7                     # ~1.764 barras de 60min num ano de 
 ATIVOS        = ['PRIO3', 'ITUB3', 'ABEV3']
 CDI_POR_ANO   = cdi_anual_por_ano()
 
-# ============================ 1) DADOS: as barras de 60 minutos ============================
+# ============================ 1) BRUTOS: as barras de 60 minutos ============================
 # Da base plana pego so as barras horarias (descarto a linha-resumo 'dia') e remonto o relogio real.
-base = pd.read_csv(DADOS / 'base_plana.csv', parse_dates=['data'])
+base = pd.read_csv(BRUTOS / 'base_plana.csv', parse_dates=['data'])
 barras = base[base['hora'] != 'dia'].copy()
 barras['timestamp'] = pd.to_datetime(barras['data'].dt.strftime('%Y-%m-%d') + ' ' + barras['hora'])
 preco = (barras.sort_values('timestamp').set_index('timestamp')[[f'{a}_fechamento' for a in ATIVOS]])

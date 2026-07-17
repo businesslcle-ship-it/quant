@@ -14,14 +14,14 @@ from pathlib import Path
 _SRC = Path(__file__).resolve().parent
 if str(_SRC) not in sys.path:
     sys.path.insert(0, str(_SRC))
-from _paths import DADOS, FIGS
+from _paths import BRUTOS, FIGS
 from _cdi import cdi_anual_por_ano
 
 CUSTO, BUFFER, HORAS_POR_ANO = 0.0020, 0.05, 252 * 7
 ATIVOS = ['PRIO3', 'ITUB3', 'ABEV3']
 CDI_POR_ANO = cdi_anual_por_ano()
 
-base = pd.read_csv(DADOS / 'base_plana.csv', parse_dates=['data'])
+base = pd.read_csv(BRUTOS / 'base_plana.csv', parse_dates=['data'])
 
 # %% 1) Dual Momentum (barras 60min) — identico ao dual_momentum.py
 df = base[base['hora'] != 'dia'].copy()

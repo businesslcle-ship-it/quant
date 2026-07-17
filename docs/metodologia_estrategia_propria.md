@@ -1,6 +1,6 @@
 # Metodologia — estratégia-própria
 
-Como chegamos à regra publicada (momentum 1 mês, rebalance semanal, Path B 145).
+Como chegamos à regra publicada (momentum 1 mês, rebalance semanal, Path B 145, book **E59** 130/30 sem CDI).
 
 ## Objetivo da linha
 
@@ -8,19 +8,20 @@ Construir um **sinal cross-sectional** com muitas decisões observáveis e desem
 
 ## Passos (um parâmetro por vez)
 
-1. **Horizonte de momentum** — testamos 3, 6 e 12 meses; depois 2 e 1 mês. Horizontes curtos geram mais trocas; horizontes longos geram ranking mais estável.
-2. **Escolha do horizonte** — 1 mês: maior densidade de decisões na frequência mensal, com retorno líquido ainda positivo após 20 bps.
-3. **Frequência** — com horizonte fixo em 1 mês, passamos de mensal para **semanal**. Rebalances e ordens sobem de forma clara; o custo sobe e o retorno líquido cai, mas a série permanece positiva no total.
-4. **Painel de decisões** — cada posição Top20/Bottom10 vira um exemplo rotulado (perna vs CDI até o próximo sinal), com partição temporal.
+1. **Horizonte de momentum** — testados 3, 6 e 12 meses; depois 2 e 1 mês. Horizontes curtos geram mais trocas; horizontes longos geram ranking mais estável.
+2. **Escolha do horizonte** — 1 mês: maior densidade de decisões, com o book ainda vivo após 20 bps.
+3. **Frequência** — com horizonte fixo em 1 mês, de mensal para **semanal**. Rebalances e ordens sobem de forma clara; o custo sobe junto.
+4. **Book** — o veículo passou por versões (100/−30 com CDI → sem CDI) até o **E59**: 130/30 clássico, long +130% financiado por short −30%, **sem CDI**. A comparação é relativa (ação vs ação), não contra a taxa de juros.
+5. **Painel de decisões** — cada posição Top20/Bottom10 vira uma decisão rotulável. O rótulo relativo (uma perna vs a outra) está em definição; o painel base-CDI foi aposentado.
 
-Números: `dados/comparativo_horizontes_filme.csv` e `dados/e55_schema_resumo.csv`.
+Filme por horizonte (densidade de decisões, neutro ao CDI): `dados/saidas/comparativo_horizontes_filme.csv` — coluna de decisão útil = `n_ordens` / `n_rebalances`.
 
 ## O que não entrou (ainda)
 
-- Filtro ou peso por **volume** (há auditoria prévia de elegibilidade binária no short; não alterou o Bottom10 naquela amostra — desenho de posicionamento por liquidez continua pendente).
+- Filtro ou peso por **volume/liquidez** — auditoria nos slots não achou nomes secos; a regra **não** usa filtro nem peso por liquidez (orientação do mentor: não mexer nisso).
 - Combinação de vários horizontes no mesmo score (evitada para manter o sinal interpretável).
-- Modelo de metalabeling treinado neste repositório (etapa seguinte).
-- **Volume/liquidez:** auditoria nos slots da base não encontrou nomes secos; a regra **não** usa filtro nem peso por liquidez (orientação: não mexer nisso).
+- **CDI no book** — removido de propósito (viés de juros BR); a régua é relativa.
+- Modelo de **metalabeling** treinado neste repositório (etapa seguinte, sobre o painel relabelado).
 
 ## Universo
 
