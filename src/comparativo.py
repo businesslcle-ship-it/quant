@@ -4,7 +4,8 @@ Comparativo — Rotacao v2 x Dual Momentum x Buy & Hold x estrategia-propria
 Mesma janela calendário, régua diária. Ativas líquidas de 20 bps/perna.
 Buy & Hold 1/3 sem corretagem.
 
-estrategia-propria = breadth Path B 145 (série exportada do lab E48, combo 3/6/9/12m).
+estrategia-propria = base AMOSTRA Path B 145 (lab E54: mom 1m, rebalance semanal).
+Norte mentor: sinal/ML — NÃO vitória por Sharpe. Meta-treino = com Guilherme (fora do repo).
 UNIVERSO DISTINTO dos 3 ativos — curva alinhada só no calendário.
 Lookbacks v2/DM usam história completa (E37); avaliação desde INICIO.
 """
@@ -58,12 +59,13 @@ series["Dual Momentum (livro)"] = perf(wA.reindex(precos.index, method="ffill").
 series["Buy & Hold 1/3"]        = ret.mean(axis=1).dropna().loc[INICIO:]
 
 ep_path = DADOS / "estrategia_propria_diario.csv"
-assert ep_path.exists(), f"Falta {ep_path} (export lab E45 → estrategia-propria)"
+assert ep_path.exists(), f"Falta {ep_path} (export lab E54 → base amostra)"
 ep = pd.read_csv(ep_path, parse_dates=["dia"]).set_index("dia")["retorno_liquido"]
 series["estrategia-propria"] = ep.dropna().loc[INICIO:]
 print(
-    "AVISO: estrategia-propria = Path B 145 (lab E48, combo 3/6/9/12m). "
-    "Universo DISTINTO dos 3 ativos; não é apples-to-apples de painel."
+    "AVISO: estrategia-propria = Path B 145 lab E54 (mom 1m, semanal). "
+    "Base de AMOSTRA para ML — nao ranking de Sharpe. "
+    "Universo DISTINTO dos 3 ativos. Meta-treino = com mentor, fora do repo."
 )
 
 print(f"{INICIO}→{precos.index[-1]:%Y-%m} | ativas @20bps; B&H sem corretagem")
@@ -83,7 +85,7 @@ fig, (ax_eq, ax_dd) = plt.subplots(2, 1, figsize=(13, 9), sharex=True,
                                    height_ratios=[2, 1], facecolor="#fcfcfb")
 fig.suptitle(
     "Comparativo — mesma janela calendário @20 bps\n"
-    "(estrategia-propria = Path B 145; demais = 3 ativos)",
+    "(estrategia-propria = E54 Path B amostra ML; demais = 3 ativos)",
     fontsize=12, weight="bold",
 )
 for nome, eq in curvas.items():

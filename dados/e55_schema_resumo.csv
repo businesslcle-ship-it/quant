@@ -1,0 +1,2 @@
+base,unidade,y_definicao,n_labels,taxa_y1,n_sinais,n_tickers,n_long,n_short,n_train_ate_2019,n_test_2020_2022,n_holdout_desde_2023,meta_treino,veredito_lab
+E54,ticker x data_sinal x lado,"perna long/short supera CDI em (t, t_proximo]",15522,0.4964,518,145,10351,5171,5326,4706,5490,COM_MENTOR_Guilherme_nao_no_repo,SCHEMA_PRONTO_PARA_META

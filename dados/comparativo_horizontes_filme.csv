@@ -1,0 +1,7 @@
+experimento,horizonte,frequencia,n_rebalances,n_ordens,turnover_total,custo_20bps,retorno_liquido,sharpe_zero_secundario,max_drawdown,inicio,fim,papel
+E49,3m,mensal,118,3354,145.22,0.2904,4.706,0.9692,-0.4127,2016-11-01,2026-07-09,paisagem_horizonte
+E50,6m,mensal,115,2281,98.14,0.1963,9.6716,1.275,-0.4431,2017-02-01,2026-07-09,paisagem_horizonte
+E51,12m,mensal,109,1599,68.72,0.1374,7.304,1.1914,-0.4459,2017-08-01,2026-07-09,paisagem_horizonte
+E52,2m,mensal,119,4017,176.3,0.3526,7.5515,1.1664,-0.4021,2016-10-03,2026-07-09,paisagem_horizonte
+E53,1m,mensal,120,5381,249.82,0.4996,4.5812,0.9587,-0.3928,2016-09-01,2026-07-09,candidato_filme_mensal
+E54,1m,semanal,519,12480,535.02,1.07,1.5157,0.5588,-0.5793,2016-08-08,2026-07-09,base_amostra_ML
