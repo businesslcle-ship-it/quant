@@ -34,9 +34,22 @@ Cross-section de momentum no Path B (145 ações com histórico contínuo na jan
 
 **Por que 1 mês e frequência semanal.** Testamos horizontes de 1 a 12 meses (e 2 meses) com a mesma carteira. Horizontes mais curtos geram **mais decisões** — material mais rico para validar o sinal e, depois, para técnicas de aprendizado sobre essas decisões. A versão semanal multiplica rebalances em relação à mensal no mesmo horizonte de 1 mês. Detalhe e pseudocódigo: [docs/pseudocodigo/base_amostra_e54.md](docs/pseudocodigo/base_amostra_e54.md) · visão rápida: [ESTRATEGIA_PROPRIA.md](ESTRATEGIA_PROPRIA.md).
 
+**Contagem de sinais (base publicada):**
+
+| Objeto | N |
+|---|---:|
+| Sinais de carteira (rebalances semanais) | **519** |
+| Decisões por nome (Top20+Bottom10 por sinal) | **15 570** |
+| Ordens de execução (compra/venda @20 bps) | **12 480** |
+| Exemplos rotulados (painel, com próximo sinal) | **15 522** |
+
+![Patrimônio estratégia-própria](figures/estrategia_propria.png)
+
 ![Horizontes Path B](figures/horizontes_path_b.png)
 
-**Painel de decisões (para aprendizado supervisionado).** Cada posição do Top20/Bottom10 em cada sinal semanal vira um exemplo rotulado: a perna superou o CDI até o próximo rebalance? Sim/não. São **15 522** exemplos (~50% positivos), com partição temporal train / test / holdout. Schema: [docs/pseudocodigo/schema_labels_e55.md](docs/pseudocodigo/schema_labels_e55.md). O modelo em cima desse painel é etapa seguinte (fora deste README).
+**Liquidez (auditoria de volume).** Nos 15 570 slots da base, trailing de 21 e 365 dias: **0** nomes sem volume/financeiro. Momentum e liquidez quase não correlacionam (Spearman ≈ 0). Corte por volume seco **não** se justifica; o próximo passo natural é **peso proporcional à liquidez dentro da cesta** (mesmos 30 nomes). Resumo: `dados/a30_volume_resumo.csv`.
+
+**Painel de decisões.** Cada posição do Top20/Bottom10 em cada sinal semanal vira um exemplo: a perna superou o CDI até o próximo rebalance? **15 522** exemplos (~50% positivos), partição temporal train / test / holdout. Schema: [docs/pseudocodigo/schema_labels_e55.md](docs/pseudocodigo/schema_labels_e55.md).
 
 ---
 
@@ -106,9 +119,10 @@ pip install -r requirements.txt
 python3 rotacao.py
 python3 dual_momentum.py
 python3 dual_momentum_mensal.py
-python3 comparativo.py
-python3 estrategia_propria_amostra.py
-python3 rotacao_graf.py
+python3 comparativo.py                 # figures/comparativo.png
+python3 estrategia_propria_graf.py     # figures/estrategia_propria.png + horizontes_path_b.png
+python3 estrategia_propria_amostra.py  # métricas + contagem de sinais
+python3 rotacao_graf.py                # figures/rotacao.png
 python3 src/sinais_comparados.py
 ```
 
