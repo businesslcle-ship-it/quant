@@ -1,44 +1,51 @@
 # Pseudocódigo — estratégia-própria, book E59 (`src/estrategia_propria.py`)
 
-Cada item traduz uma linha do código de referência para português, na ordem em que executa.
+Código à esquerda, explicação à direita — cada linha, na ordem em que executa.
 
 Universo: Path B (145 ações). Sinal: momentum de **1 mês** (calendário). Rebalance: **semanal**. Book: **130/30 clássico, sem CDI** — o short de 30% financia os 30% a mais de long.
 
-## Parâmetros
+## Parâmetros — o contrato
 
-- **30** — Long: 20 maiores momentum (Top20).
-- **31** — Short: 10 menores momentum (Bottom10).
-- **32** — Soma da perna long = **+130%** → 6,5% por nome.
-- **33** — Soma da perna short = **−30%** → −3% por nome; é o short que financia o long extra.
-- **34** — Custo: 20 bps por troca de peso.
-- **35** — Sem CDI: caixa 0 e o retorno é long menos short — ação vs ação.
+| Linha | Código | O que faz |
+|---|---|---|
+| 30 | `TOP_N = 20` | Long: as **20** ações de maior momentum (Top20). |
+| 31 | `BOTTOM_N = 10` | Short: as **10** de menor momentum (Bottom10). |
+| 32 | `PESO_LONG = 1.30` | A perna long soma **+130%** → 6,5% por nome. |
+| 33 | `PESO_SHORT = 0.30` | A perna short soma **−30%** → −3% por nome; é ela que **financia** o long extra. |
+| 34 | `CUSTO_ORDEM = 0.0020` | **20 bps** cada vez que um peso muda. |
+| 35 | `# sem CDI` | Caixa **0**; retorno é **long menos short** — ação vs ação. |
 
-## A regra (`book_130_30`, linhas 39–66)
+## A regra — `book_130_30`
 
-- **46** — Retorno diário de cada ativo: matéria-prima de todo o resto.
-- **49** — Tabela de pesos vazia (datas × ativos), preenchida só nas datas de sinal.
-- **50** — Para cada data de rebalance *t* (último pregão da semana):
-- **51** — Recorto a história até *t* (sem espiar o futuro).
-- **52** — Busco o preço de **~1 mês** atrás (`asof` = último preço em ou antes da data).
-- **53** — Momentum de cada ativo: preço em *t* ÷ preço de 1 mês atrás − 1.
-- **54–55** — Se há menos de 30 nomes elegíveis (20 + 10), pulo a data.
-- **56** — Monto a linha de pesos do dia, toda em zero.
-- **57** — As 20 maiores recebem **+6,5%** cada.
-- **58** — As 10 menores recebem **−3%** cada.
-- **59** — Gravo a carteira decidida na data *t*.
-- **61** — Seguro os pesos até o próximo sinal (`ffill`): a carteira mantém a posição a semana toda.
-- **62** — Execução defasada: o peso de *t* só paga em *t+1* (`shift(1)`, sem look-ahead).
-- **64** — Custo do dia: soma das variações absolutas dos pesos × 20 bps.
-- **65** — Retorno bruto: pesos de ontem × retornos de hoje — **long menos short, sem CDI**.
-- **66** — Retorno líquido = bruto − custo.
+| Linha | Código | O que faz |
+|---|---|---|
+| 46 | `retorno_diario = precos.pct_change()` | Retorno diário de cada ação: **matéria-prima** de tudo. |
+| 49 | `pesos = pd.DataFrame(datas × ações)` | Tabela de pesos vazia, preenchida **só** nas datas de sinal. |
+| 50 | `for t in datas_sinal:` | Para cada rebalance **t** (último pregão da semana). |
+| 51 | `historia = precos.loc[:t]` | Recorto a história **até t** — sem espiar o futuro. |
+| 52 | `preco_1m_atras = historia.asof(t − 1 mês)` | Busco o preço de **~1 mês** atrás. |
+| 53 | `momentum = preco[t] / preco_1m_atras − 1` | **Quanto cada ação subiu** no mês. |
+| 54–55 | `if len(momentum) < 30: continue` | Menos de 30 elegíveis (20+10)? **Pulo** a data. |
+| 56 | `linha = pd.Series(0.0, ações)` | Monto a linha de pesos do dia, **toda em zero**. |
+| 57 | `linha[20 maiores] = 1.30 / 20` | As 20 maiores recebem **+6,5%** cada. |
+| 58 | `linha[10 menores] = −0.30 / 10` | As 10 menores recebem **−3%** cada. |
+| 59 | `pesos.loc[t] = linha` | Gravo a carteira decidida na data **t**. |
+| 61 | `pesos = pesos.ffill()` | **Seguro** os pesos até o próximo sinal (mantém a posição a semana toda). |
+| 62 | `pesos_ontem = pesos.shift(1)` | Execução defasada: o peso de **t** só paga em **t+1** — sem look-ahead. |
+| 64 | `custo = abs(Δpesos).sum() × 0.0020` | Custo do dia: variações absolutas dos pesos × **20 bps**. |
+| 65 | `retorno_bruto = (pesos_ontem × ret).sum()` | Bruto: pesos de ontem × retornos de hoje — **long menos short, sem CDI**. |
+| 66 | `return retorno_bruto − custo` | Retorno **líquido** = bruto − custo. |
 
-## Métricas (linhas 69–82, a partir da série do lab)
+## Métricas — a partir da série oficial do lab
 
-- **72–73** — Leio a série oficial exportada do motor (`dados/saidas/estrategia_propria_diario.csv`); **não** recalculo o book aqui (o painel dos 145 nomes não vem neste repo público).
-- **75–79** — Patrimônio, retorno total, Sharpe vs zero (√252) e pior drawdown, guardados em **variáveis nomeadas** (aparecem no explorer do Spyder).
-- **resumo** — uma única linha de print: ret / Sharpe / MaxDD / exposições. Sem prints de debug.
-
-> Os números canônicos vêm do motor do lab (ramo E59, `contrib_cdi = 0`). `book_130_30` é a mesma lógica em forma mínima, para ler e entender o mecanismo.
+| Linha | Código | O que faz |
+|---|---|---|
+| 72 | `serie = pd.read_csv(SAIDAS / "...diario.csv")` | Leio a série exportada do motor. **Não** recalculo o book aqui (os 145 nomes não vêm no repo público). |
+| 76 | `patrimonio = (1 + retorno).cumprod()` | Curva de capital, base 1. |
+| 77 | `retorno_total = patrimonio[-1] − 1` | Retorno acumulado → **+126%**. |
+| 78 | `sharpe = média/desvio × √252` | Sharpe vs zero → **0,44** (secundário, não é o critério). |
+| 79 | `max_drawdown = min(patrimonio/pico − 1)` | Pior queda do pico → **−71%**. |
+| 82 | `print(resumo)` | **Única** saída: uma linha de resumo. O resto fica nas variáveis (explorer do Spyder). |
 
 ## Números (stdout de `python3 estrategia_propria.py`)
 
